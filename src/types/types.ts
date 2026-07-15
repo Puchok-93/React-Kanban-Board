@@ -5,7 +5,7 @@ export type TColumn = {
 }
 
 export type TTask = {
-    id: number;
+    id: string;
     title: string;
 }
 

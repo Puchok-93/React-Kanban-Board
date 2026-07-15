@@ -1,16 +1,18 @@
 import type { TTask } from "../../types/types";
 import { useState, useRef, useEffect } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type TTaskProps = {
 	task: TTask;
 	columnId: string;
 	onEditTask: (
         columnId: string,
-        taskId: number,
+        taskId: string,
         newTitle: string
     ) => void;
-	editingTaskId: number | null;
-    setEditingTaskId: React.Dispatch<React.SetStateAction<number | null>>;
+	editingTaskId: string | null;
+    setEditingTaskId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 function Task({task, columnId, onEditTask, editingTaskId, setEditingTaskId}: TTaskProps) {
@@ -18,6 +20,22 @@ function Task({task, columnId, onEditTask, editingTaskId, setEditingTaskId}: TTa
 
 	const isEditing = editingTaskId === task.id;
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		} = useSortable({
+		id: task.id,
+		disabled: isEditing,
+		});
+
+		const style = {
+			transform: CSS.Transform.toString(transform),
+			transition,
+		};
 
 	useEffect(() => {
 		if (isEditing) {
@@ -33,14 +51,36 @@ function Task({task, columnId, onEditTask, editingTaskId, setEditingTaskId}: TTa
 	}
 
     return(
-		<div className={`taskboard__item task task--${columnId} ${isEditing === true ? 'task--active' : ''}` }>
-			<div className="task__body">
-				<p className="task__view">{task.title}</p>
-				<input className="task__input" type="text" value={value} 
-				onChange={(e) => setValue(e.target.value)}
-				onKeyDown={handleKeyDown}/>
+		<div 
+			ref={setNodeRef}
+			style={style}
+			className={`taskboard__item task task--${columnId} ${
+				isEditing ? "task--active" : ""
+			}`}
+			{...attributes}
+		>
+			<div className="task__body" {...listeners}>
+				{isEditing ? (
+            <input
+                ref={inputRef}
+                className="task__input"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+            />
+        ) : (
+            <p className="task__view">
+                {task.title}
+            </p>
+        )}
 			</div>
-			<button onClick={() => setEditingTaskId(task.id)} className="task__edit" type="button" aria-label="Изменить"></button>
+			<button
+				onPointerDown={(e) => e.stopPropagation()}
+				onClick={() => setEditingTaskId(task.id)}
+				className="task__edit"
+				type="button"
+				aria-label="Изменить"
+			/>
 		</div>
     );
 }
