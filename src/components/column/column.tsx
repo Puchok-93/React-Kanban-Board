@@ -20,47 +20,69 @@ type TColumnProps = {
     ) => void;
 	editingTaskId: string | null;
     setEditingTaskId: React.Dispatch<React.SetStateAction<string | null>>;
-	overId: string | null;
+	activeTaskId: string | null;
+
 
 }
 
-function Column({id, label, tasks, children, onEditTask, editingTaskId, setEditingTaskId, overId}: TColumnProps) {
+function Column({
+	id,
+	label,
+	tasks,
+	children,
+	onEditTask,
+	editingTaskId,
+	setEditingTaskId,
+	activeTaskId
+}: TColumnProps) {
+
 	const { setNodeRef, isOver } = useDroppable({
 		id,
 	});
-    return (
-		<SortableContext
-			items={tasks.map(task => task.id)}
-			strategy={verticalListSortingStrategy}
-		>
-		<article className={`taskboard__group taskboard__group--${id}`}>
-			<h3 className={`taskboard__group-heading taskboard__group-heading--${id}`}>{label}</h3>
-			<div ref={setNodeRef} className={`taskboard__list ${isOver ? "taskboard__list--over" : ""}`}>
-				{tasks.map((task) => (
-					<React.Fragment key={task.id}>
-						{overId === task.id && (
-							<div className="task-placeholder"></div>
-						)}
 
+
+	return (
+		<article className={`taskboard__group taskboard__group--${id}`}>
+			<h3 className={`taskboard__group-heading taskboard__group-heading--${id}`}>
+				{label}
+			</h3>
+			<SortableContext
+				items={tasks.map(task => task.id)}
+				strategy={verticalListSortingStrategy}
+			>
+				<div
+					ref={setNodeRef}
+					className={`taskboard__list ${
+						isOver ? "taskboard__list--over" : ""
+					}`}
+				>
+
+					{tasks.map((task) => (
 						<Task
+							key={task.id}
 							task={task}
 							columnId={id}
 							onEditTask={onEditTask}
 							editingTaskId={editingTaskId}
 							setEditingTaskId={setEditingTaskId}
+							isDragging={activeTaskId === task.id}
 						/>
-					</React.Fragment>
-				))}
-				{tasks.length === 0 && (
-					<DragArea
-						text={id === "basket" ? "Корзина пуста" : "Перетащите карточку"}
-					/>
-				)}
-			</div>
+					))}
+
+					{tasks.length === 0 && (
+						<DragArea
+							text={
+								id === "trash"
+									? "Корзина пуста"
+									: "Перетащите карточку"
+							}
+						/>
+					)}
+				</div>
+			</SortableContext>
 			{children}
 		</article>
-		</SortableContext>
-    );
+	);
 }
 
 export default Column;

@@ -61,25 +61,32 @@ function App() {
 	const moveTask = (activeId: string, overId: string) => {
 		setColumns((prevColumns) => {
 
-			const sourceColumn = prevColumns.find((column) =>
-				column.tasks.some((task) => task.id === activeId)
-			);
+			let sourceColumn;
+			let targetColumn;
 
-			if (!sourceColumn) {
-				return prevColumns;
+			for (const column of prevColumns) {
+				if (
+					column.tasks.some(
+						(task) => task.id === activeId
+					)
+				) {
+					sourceColumn = column;
+				}
+
+				if (
+					column.tasks.some(
+						(task) => task.id === overId
+					)
+				) {
+					targetColumn = column;
+				}
+
+				if (column.id === overId) {
+					targetColumn = column;
+				}
 			}
 
-			let targetColumn = prevColumns.find((column) =>
-				column.tasks.some((task) => task.id === overId)
-			);
-
-			if (!targetColumn) {
-				targetColumn = prevColumns.find(
-					(column) => column.id === overId
-				);
-			}
-
-			if (!targetColumn) {
+			if (!sourceColumn || !targetColumn) {
 				return prevColumns;
 			}
 
@@ -87,30 +94,36 @@ function App() {
 				(task) => task.id === activeId
 			);
 
-
 			if (!task) {
 				return prevColumns;
 			}
 
+			// перемещение внутри одной колонки
 			if (sourceColumn.id === targetColumn.id) {
 
-				return prevColumns.map((column) => {
-
-					if (column.id !== sourceColumn.id) {
-						return column;
-					}
-
-					const oldIndex = column.tasks.findIndex(
+				const oldIndex =
+					sourceColumn.tasks.findIndex(
 						(task) => task.id === activeId
 					);
 
-					const newIndex = column.tasks.findIndex(
+
+				const newIndex =
+					sourceColumn.tasks.findIndex(
 						(task) => task.id === overId
 					);
 
-					if (oldIndex === -1 || newIndex === -1) {
+
+				if (oldIndex === newIndex) {
+					return prevColumns;
+				}
+
+
+				return prevColumns.map((column)=>{
+
+					if(column.id !== sourceColumn.id){
 						return column;
 					}
+
 
 					return {
 						...column,
@@ -118,46 +131,36 @@ function App() {
 							column.tasks,
 							oldIndex,
 							newIndex
-						),
+						)
 					};
+
 				});
 			}
 
-			return prevColumns.map((column) => {
+			// перенос между колонками
 
-				if (column.id === sourceColumn.id) {
+			return prevColumns.map((column)=>{
+				// убираем из старой
+				if(column.id === sourceColumn.id){
 
 					return {
 						...column,
 						tasks: column.tasks.filter(
-							(task) => task.id !== activeId
-						),
+							(task)=>task.id !== activeId
+						)
 					};
+
 				}
 
-				if (column.id === targetColumn.id) {
-
-					const overIndex = column.tasks.findIndex(
-						(task) => task.id === overId
-					);
-
-
-					const newTasks = [...column.tasks];
-
-					if (overIndex === -1) {
-						newTasks.push(task);
-
-					} else {
-						newTasks.splice(
-							overIndex,
-							0,
-							task
-						);
-					}
+				// добавляем в новую
+				if(column.id === targetColumn.id){
 
 					return {
 						...column,
-						tasks: newTasks,
+						tasks:[
+							...column.tasks,
+							task
+						]
 					};
 				}
 

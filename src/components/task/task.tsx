@@ -6,18 +6,21 @@ import { CSS } from "@dnd-kit/utilities";
 type TTaskProps = {
 	task: TTask;
 	columnId: string;
-	onEditTask: (
-        columnId: string,
-        taskId: string,
-        newTitle: string
-    ) => void;
+	onEditTask: (columnId: string, taskId: string, title: string) => void;
 	editingTaskId: string | null;
-    setEditingTaskId: React.Dispatch<React.SetStateAction<string | null>>;
-}
+	setEditingTaskId: (id: string | null) => void;
+	isDragging: boolean;
+};
 
-function Task({task, columnId, onEditTask, editingTaskId, setEditingTaskId}: TTaskProps) {
+function Task({
+	task,
+	columnId,
+	onEditTask,
+	editingTaskId,
+	setEditingTaskId,
+	isDragging,
+}: TTaskProps) {
 	const [value, setValue] = useState(task.title);
-
 	const isEditing = editingTaskId === task.id;
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,62 +30,55 @@ function Task({task, columnId, onEditTask, editingTaskId, setEditingTaskId}: TTa
 		setNodeRef,
 		transform,
 		transition,
-		} = useSortable({
+	} = useSortable({
 		id: task.id,
 		disabled: isEditing,
-		});
+	});
 
-		const style = {
-			transform: CSS.Transform.toString(transform),
-			transition,
-		};
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		opacity: isDragging ? 0 : 1,
+	};
 
 	useEffect(() => {
 		if (isEditing) {
-		inputRef.current?.focus();
+			inputRef.current?.focus();
 		}
 	}, [isEditing]);
 
-	const handleKeyDown =(e: React.KeyboardEvent<HTMLInputElement>) => {
-		if(e.key === 'Enter') {
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
 			onEditTask(columnId, task.id, value);
 			setEditingTaskId(null);
 		}
-	}
+	};
 
-    return(
-		<div 
-			ref={setNodeRef}
-			style={style}
-			className={`taskboard__item task task--${columnId} ${
-				isEditing ? "task--active" : ""
-			}`}
-			{...attributes}
-		>
-			<div className="task__body" {...listeners}>
+	return (
+		<div ref={setNodeRef} style={style} className={`taskboard__item task task--${columnId}`}>
+			<div className="task__body" {...listeners} {...attributes}>
 				{isEditing ? (
-            <input
-                ref={inputRef}
-                className="task__input"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-            />
-        ) : (
-            <p className="task__view">
-                {task.title}
-            </p>
-        )}
+					<input
+						ref={inputRef}
+						className="task__input"
+						value={value}
+						onChange={(e) => setValue(e.target.value)}
+						onKeyDown={handleKeyDown}
+					/>
+				) : (
+					<p className="task__view">{task.title}</p>
+				)}
 			</div>
+
 			<button
+				type="button"
+				className="task__edit"
+				aria-label="Изменить"
 				onPointerDown={(e) => e.stopPropagation()}
 				onClick={() => setEditingTaskId(task.id)}
-				className="task__edit"
-				type="button"
-				aria-label="Изменить"
 			/>
 		</div>
-    );
+	);
 }
 
 export default Task;

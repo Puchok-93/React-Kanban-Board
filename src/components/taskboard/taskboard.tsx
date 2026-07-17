@@ -1,7 +1,9 @@
 import type { TColumns } from "../../types/types";
 import ClearBtn from "../clear-btn/clear-btn";
 import Column from "../column/column";
-import { DndContext, type DragEndEvent,  type DragStartEvent, type DragOverEvent } from "@dnd-kit/core";
+import { DndContext, type DragStartEvent, type DragOverEvent, type DragEndEvent , PointerSensor,
+	useSensor,
+	useSensors, closestCorners } from "@dnd-kit/core";
 import { useState } from "react";
 import { DragOverlay } from "@dnd-kit/core";
 import TaskView from "../task/task-view";
@@ -20,7 +22,14 @@ type TColumnsProps = {
 
 function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTask}: TColumnsProps) {
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-    const [overId, setOverId] = useState<string | null>(null);
+    
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        })
+    );
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveTaskId(String(event.active.id));
@@ -28,34 +37,50 @@ function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTa
 
     const handleDragEnd = (event: DragEndEvent) => {
         const {active, over} = event;
-
         setActiveTaskId(null);
-        if (!over) return;
 
+        if (!over) {
+            return;
+        }
+
+        const activeId = String(active.id);
+        const overId = String(over.id);
 
         moveTask(
-            String(active.id),
-            String(over.id)
+            activeId,
+            overId
         );
-
-        setOverId(null);
     };
 
     const handleDragCancel = () => {
         setActiveTaskId(null);
-        setOverId(null);
     };
 
     const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
+        const { active, over } = event;
 
-    if (!over) {
-        setOverId(null);
-        return;
-    }
+        if (!over) return;
 
-    setOverId(String(over.id));
-};
+        const activeId = String(active.id);
+        const overId = String(over.id);
+
+        const activeColumn = columns.find(column =>
+            column.tasks.some(task => task.id === activeId)
+        );
+
+        const overColumn = columns.find(column =>
+            column.tasks.some(task => task.id === overId)
+            || column.id === overId
+        );
+
+        if (!activeColumn || !overColumn) {
+            return;
+        }
+
+        if (activeColumn.id !== overColumn.id) {
+            moveTask(activeId, overId);
+        }
+    };
 
     const activeTask = columns
     .flatMap((column) => column.tasks)
@@ -63,6 +88,8 @@ function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTa
 
     return (
         <DndContext 
+            collisionDetection={closestCorners}
+            sensors={sensors}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
@@ -79,9 +106,9 @@ function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTa
                             onEditTask={onEditTask}
                             editingTaskId={editingTaskId}
                             setEditingTaskId={setEditingTaskId}
-                            overId={overId}
+                            activeTaskId={activeTaskId}
                         >
-                            {column.id === "basket" && <ClearBtn />}
+                            {column.id === "trash" && <ClearBtn />}
                         </Column>
                 ))}
             </section>
