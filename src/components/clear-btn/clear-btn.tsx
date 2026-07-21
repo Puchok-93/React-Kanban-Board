@@ -1,6 +1,11 @@
-function ClearBtn() {
+type TClearBtnProps = {
+	onClearTrash: () => void;
+	disabled: boolean;
+}
+
+function ClearBtn({onClearTrash, disabled}: TClearBtnProps) {
     return(
-		<button className="taskboard__button button button--clear" type="button">
+		<button onClick={onClearTrash} className="taskboard__button button button--clear" type="button" disabled={disabled}>
 			<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<rect x="15.5374" y="5.16638" width="1.83333" height="14.6667" transform="rotate(45 15.5374 5.16638)"
 				fill="white" />

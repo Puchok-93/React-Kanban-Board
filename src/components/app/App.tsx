@@ -169,6 +169,19 @@ function App() {
 		});
 	};
 
+	const clearTrash = () => {
+		setColumns((prevColumns) =>
+			prevColumns.map((column) =>
+				column.id === "trash"
+					? {
+							...column,
+							tasks: [],
+					}
+					: column
+			)
+		);
+	};
+
 	return (
 		<div className="board-app">
 			<Header/>
@@ -181,6 +194,7 @@ function App() {
 					moveTask={moveTask}
 					editingTaskId={editingTaskId}
 					setEditingTaskId={setEditingTaskId}
+					clearTrash= {clearTrash}
 				/>
 				</div>
 			</main>

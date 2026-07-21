@@ -18,9 +18,10 @@ type TColumnsProps = {
     editingTaskId: string | null;
     setEditingTaskId: React.Dispatch<React.SetStateAction<string | null>>;
     moveTask: (activeId: string, overId: string) => void;
+    clearTrash: () => void;
 }
 
-function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTask}: TColumnsProps) {
+function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTask, clearTrash}: TColumnsProps) {
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     
     const sensors = useSensors(
@@ -108,7 +109,12 @@ function Taskboard({columns, onEditTask, editingTaskId, setEditingTaskId, moveTa
                             setEditingTaskId={setEditingTaskId}
                             activeTaskId={activeTaskId}
                         >
-                            {column.id === "trash" && <ClearBtn />}
+                        {column.id === "trash" && (
+                            <ClearBtn 
+                                onClearTrash={clearTrash}
+                                disabled={column.tasks.length === 0} 
+                            />
+                        )}
                         </Column>
                 ))}
             </section>

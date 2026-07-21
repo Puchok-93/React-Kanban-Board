@@ -21,8 +21,6 @@ type TColumnProps = {
 	editingTaskId: string | null;
     setEditingTaskId: React.Dispatch<React.SetStateAction<string | null>>;
 	activeTaskId: string | null;
-
-
 }
 
 function Column({
@@ -33,7 +31,7 @@ function Column({
 	onEditTask,
 	editingTaskId,
 	setEditingTaskId,
-	activeTaskId
+	activeTaskId,
 }: TColumnProps) {
 
 	const { setNodeRef, isOver } = useDroppable({
